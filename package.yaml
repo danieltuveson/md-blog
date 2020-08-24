@@ -22,12 +22,18 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - wai
+- warp
+- wai-extra
+- http-types
 - blaze-markup
+- blaze-html
 - parsec
-- text
+- bytestring
 
 library:
   source-dirs: src
+  ghc-options:
+    - -Wall
 
 executables:
   md-blog-exe:
@@ -37,6 +43,7 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
     dependencies:
     - md-blog
 

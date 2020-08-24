@@ -1,19 +1,17 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -Wno-unused-do-bind #-} 
 
 module Markdown where 
 
 import Text.Parsec
-import Text.Parsec.Char
-import Text.Parsec.String(Parser, parseFromFile)
+import Text.Parsec.String(Parser)
 
-import Control.Monad
 import Data.Maybe
-
 
 {--
 The functions in this file are responsible for reading markdown and building an 
 abstract syntax tree, that can be then be translated into HTML
 --}
-
 
 data Markdown
   = MDText [MDText]
@@ -21,7 +19,6 @@ data Markdown
   | CodeBlock Language String 
   | List MDList 
   deriving(Show, Eq)
-
 
 data MDText
   = Plain String 
@@ -49,8 +46,13 @@ data MDList
 data Language
   = Haskell 
   | NoLanguage
-  deriving(Show, Eq)
+  deriving(Eq)
 
+instance Show Language where 
+  show l = 
+    case l of 
+      Haskell -> "lang-haskell"
+      NoLanguage -> "lang-none"
 
 nonNewlineSpace :: Parser Char 
 nonNewlineSpace = 
@@ -59,117 +61,125 @@ nonNewlineSpace =
         unexpected "non-newline space" 
       else return nl
 
-parseEOF = eof >> return ""
+checkEOF :: Parser String 
+checkEOF = eof >> return ""
 
-markdown :: Parser [Markdown]
-markdown = 
-  do  m <- manyTill parseMD parseEOF
-      return m
-  where parseMD = (try parseHeader) <|> (try parseList) <|> (try codeBlock) <|> (try parseMDLine >>= return . MDText)
+checkEOL :: Parser String 
+checkEOL = lookAhead $ try $ string "\n"
+
+parseMarkdown :: Parser [Markdown]
+parseMarkdown = do
+  m <- manyTill parseMD checkEOF
+  return m
+  where 
+    parseMD = parseHeader <|> parseList <|> codeBlock <|> (parseMDLineWithNewline >>= return . MDText)
 
 parseMDLine :: Parser [MDText]
-parseMDLine = 
-  do  m <- manyTill parseMDTextChunk ((try $ string "\n") <|> parseEOF)
-      return $ concat m
+parseMDLine = do
+  m <- manyTill parseMDTextChunk ((try $ string "\n") <|> checkEOF)
+  return $ concat m
 
--- -- Used for debugging parseMDTextChunk
--- parseMDTextChunkNTimes :: Int -> Parser [[MDText]]
--- parseMDTextChunkNTimes n = mapM (const parseMDTextChunk) [1..n]
+parseMDLineWithNewline :: Parser [MDText]
+parseMDLineWithNewline = try $ do
+  m <- manyTill parseMDTextChunk (checkEOL <|> checkEOF)
+  n <- string "\n" <|> checkEOF
+  return $ (concat m ++ [Plain n])
 
 parseMDTextChunk :: Parser [MDText]
-parseMDTextChunk = 
-  do  text    <- manyTill anyChar $ (lookAhead $ try inlineIdentifier) <|> (lookAhead $ try $ string "\n") <|> parseEOF -- doesn't matter what eof returns
-      inlineStyle <- optionMaybe $ (try bold) <|> (try italic) <|> (try inLineCode) <|> (try parseLink) <|> (try strikethrough)
-      case inlineStyle of 
-        Nothing -> 
-          -- if failed to parse as inline style, parse a *, _, or `, etc as plain text, that way we don't try to parse them again
-          do  rem <- optionMaybe $ lookAhead $ try $ inlineIdentifier
-              case rem of 
-                Nothing -> return [Plain text]
-                Just r  -> 
-                  do  okactuallytho <- inlineIdentifier 
-                      return [Plain $ text ++ r]
-        Just s  -> return $ [Plain text] ++ s
-  where inlineIdentifier = 
-          do  c <- string "*" <|> string "_" <|> string "`" <|> string "h" <|> string "[" <|> string "~"
-              return c
+parseMDTextChunk = do 
+  text        <- manyTill anyChar $ lookAhead inlineIdentifier <|> checkEOL <|> checkEOF
+  maybeStyled <- optionMaybe $ bold <|> italic <|> inLineCode <|> parseLink <|> strikethrough
+  case maybeStyled of 
+    Nothing -> do 
+      remainder   <- optionMaybe $ inlineIdentifier
+      let identifierString = fromMaybe "" remainder 
+      return $ [Plain $ text ++ identifierString]
+    Just s  -> return $ [Plain text, s]
+  where 
+    inlineIdentifier = try $ do 
+      c <- oneOf "*_`h[~" 
+      return [c]
 
+inlineStyle :: String -> (String -> MDText) -> Parser MDText
+inlineStyle str constructor = try $ do
+  string str
+  text  <- manyTill (noneOf "\n") (try (string str))
+  return $ constructor text
 
-inlineStyle :: String -> (String -> MDText) -> Parser [MDText]
-inlineStyle str constructor = try $ 
-  do  string str
-      text  <- manyTill (noneOf "\n") (try (string str))
-      lookAhead space
-      return $ [constructor text]
-
-bold :: Parser [MDText] 
+bold :: Parser MDText 
 bold = inlineStyle "**" (Bold . Plain) <|> inlineStyle "__" (Bold . Plain)
 
-italic :: Parser [MDText] 
+italic :: Parser MDText
 italic = inlineStyle "*" (Italic . Plain) <|> inlineStyle "_" (Italic . Plain)
 
-inLineCode :: Parser [MDText] 
+inLineCode :: Parser MDText
 inLineCode = inlineStyle "`" CodeLine
 
-strikethrough :: Parser [MDText]
+strikethrough :: Parser MDText
 strikethrough = inlineStyle "~~" (Strikethrough . Plain)
 
-parseLink :: Parser [MDText]
-parseLink = (try autoLink) <|> (try link)
-  where link = 
-          do  char '['
-              text <- manyTill (noneOf "\n") (string "](")
-              link <- manyTill nonNewlineSpace (char ')')
-              return [Link (text, link)]
-        autoLink =  
-          do  http <- (try $ string "http://") <|> (try $ string "https://")
-              rest <- manyTill anyChar (lookAhead $ try $ space)
-              let link = http ++ rest
-              return [Link (link, link)]
+parseLink :: Parser MDText
+parseLink = labeledLink <|> autoLink
+  where 
+    labeledLink = try $ do 
+      char '['
+      text <- manyTill (noneOf "\n") (string "](")
+      l    <- link $ char ')'
+      return $ Link (text, l)
+    autoLink = try $ do 
+      l <- link space
+      return $ Link (l, l)
+    link end =  do
+      http <- (try $ string "http://") <|> (try $ string "https://")
+      rest <- manyTill anyChar (lookAhead $ try $ end)
+      return $ http ++ rest
 
 parseHeader :: Parser Markdown
-parseHeader = 
-  do  h <- char '#'
-      maybeHashes <- count 5 (optionMaybe $ char '#')
-      let hashes = h : (map fromJust $ takeWhile isJust maybeHashes)
-      let headerType = toEnum $ (length hashes - 1)
-      nonNewlineSpace
-      l <- parseMDLine
-      return $ Header headerType l
+parseHeader = try $ do 
+  h <- char '#'
+  maybeHashes <- count 5 (optionMaybe $ char '#')
+  let hashes = h : (map fromJust $ takeWhile isJust maybeHashes)
+  let headerType = toEnum $ (length hashes - 1)
+  nonNewlineSpace
+  l <- parseMDLine
+  return $ Header headerType l
 
 parseList :: Parser Markdown
-parseList = ((try parseUL) <|> (try parseOL)) >>= return . List
+parseList = (parseUL <|> parseOL) >>= return . List
 
 parseUL :: Parser MDList
-parseUL = many1 parseULItem >>= return . UL
-  where parseULItem = 
-          do  oneOf "-*"
-              nonNewlineSpace
-              l <- parseMDLine
-              return l
+parseUL = try $ many1 parseULItem >>= return . UL
+  where 
+    parseULItem = do 
+      oneOf "-*"
+      nonNewlineSpace
+      l <- parseMDLine
+      return l
 
 parseOL :: Parser MDList
-parseOL = many1 parseOLItem >>= return . OL
-  where parseOLItem = 
-          do  num <- many1 digit
-              char '.'
-              nonNewlineSpace
-              l <- parseMDLine
-              return (read num :: Int, l)
+parseOL = try $ many1 parseOLItem >>= return . OL
+  where 
+    parseOLItem = do
+      num <- many1 digit
+      char '.'
+      nonNewlineSpace
+      l <- parseMDLine
+      return (read num :: Int, l)
 
 codeBlock :: Parser Markdown
-codeBlock = 
-  do  string "```"
-      lang <- parseLanguage
-      newline 
-      code <- manyTill anyChar $ try $ (newline >> string "```")
-      return $ CodeBlock lang code 
+codeBlock = try $ do
+  string "```"
+  lang <- parseLanguage
+  newline 
+  code <- manyTill anyChar $ try $ (newline >> string "```")
+  return $ CodeBlock lang code 
 
 parseLanguage :: Parser Language
-parseLanguage = 
-  do  optional nonNewlineSpace
-      str <- many alphaNum
-      return $ toLanguage str
-  where toLanguage str
-          | str == "haskell" = Haskell
-          | otherwise = NoLanguage 
+parseLanguage = try $ do 
+  optional nonNewlineSpace
+  str <- many alphaNum
+  return $ toLanguage str
+  where 
+    toLanguage str
+      | str == "haskell" = Haskell
+      | otherwise = NoLanguage 
