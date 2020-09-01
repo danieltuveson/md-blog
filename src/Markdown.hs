@@ -49,10 +49,9 @@ data Language
   deriving(Eq)
 
 instance Show Language where 
-  show l = 
-    case l of 
-      Haskell -> "lang-haskell"
-      NoLanguage -> "lang-none"
+  show = \case
+    Haskell    -> "lang-haskell"
+    NoLanguage -> "lang-none"
 
 nonNewlineSpace :: Parser Char 
 nonNewlineSpace = 

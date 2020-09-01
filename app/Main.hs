@@ -6,10 +6,12 @@ import Prelude hiding(writeFile)
 
 import Markdown(parseMarkdown)
 import HTML(markdownToHtml)
+import Templates(index)
 
 import Text.Parsec.String(parseFromFile)
 import Text.Blaze.Html hiding (map)
-import Text.Blaze.Renderer.Utf8 (renderMarkup)
+import Text.Blaze.Html5(h1)
+import Text.Blaze.Renderer.Utf8(renderMarkup)
 
 import Control.Concurrent(threadDelay)
 
@@ -20,7 +22,9 @@ import Network.Wai
 import Network.HTTP.Types
 import Network.Wai.Handler.Warp (run)
 
-type BlogPost = ByteString
+import System.Directory(getCurrentDirectory)
+
+type BlogPost = Html
 
 -- generatePosts :: IO () 
 -- generatePosts = do
@@ -35,26 +39,35 @@ generatePost = do
   return $ 
     case eitherMD of 
       Left err -> fromString $ show err 
-      Right md -> renderMarkup $ markdownToHtml md 
+      Right md -> markdownToHtml md 
 
-blogPost :: BlogPost -> Response 
-blogPost post = responseLBS
+page :: Html -> Response 
+page post = responseLBS
   status200
   [("Content-Type", "text/html")]
-  post
+  (renderMarkup $ index post)
+
+css :: Response
+css = responseFile
+    status200
+    [("Content-Type", "text/css")]
+    "./css/style.css"
+    Nothing
 
 app :: Application
 app request respond = do 
   p <- generatePost
   respond $ case rawPathInfo request of
-    -- "/"     -> index
-    "/posts/hello-world" -> blogPost p
-    -- _       -> notFound
+    "/"     -> page $ h1 "Welcome"
+    "/posts/hello-world" -> page p
+    "/css/style.css" -> css
+    -- _       -> "FUCK"
+    
 
 main :: IO ()
 main = do
   -- generatePosts
+  wd <- getCurrentDirectory
+  print wd
   putStrLn $ "http://localhost:8080/"
   run 8080 app
-
--- main = print "hi"

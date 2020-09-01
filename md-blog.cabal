@@ -4,16 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1bf34b5faed8c501bc1c8a32df18c948e9d98aaed510d89dd5edc00c9a7628f1
+-- hash: 62b752878fc11323f158832b134ad45f2b37b04c47939fb09e2818e996ca0a85
 
 name:           md-blog
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/md-blog#readme>
-homepage:       https://github.com/githubuser/md-blog#readme
-bug-reports:    https://github.com/githubuser/md-blog/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
+homepage:       https://github.com/danieltuveson/md-blog#readme
+bug-reports:    https://github.com/danieltuveson/md-blog/issues
+author:         Daniel Tuveson
+maintainer:     danieltuveson@gmail.com
+copyright:      2020 Daniel Tuveson
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -23,7 +23,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/md-blog
+  location: https://github.com/danieltuveson/md-blog
 
 library
   exposed-modules:
@@ -33,12 +33,15 @@ library
       Paths_md_blog
   hs-source-dirs:
       src
+  default-extensions: LambdaCase
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
+    , containers
+    , directory
     , http-types
     , parsec
     , wai
@@ -49,15 +52,19 @@ library
 executable md-blog-exe
   main-is: Main.hs
   other-modules:
+      Templates
       Paths_md_blog
   hs-source-dirs:
       app
+  default-extensions: LambdaCase
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
+    , containers
+    , directory
     , http-types
     , md-blog
     , parsec
@@ -73,12 +80,15 @@ test-suite md-blog-test
       Paths_md_blog
   hs-source-dirs:
       test
+  default-extensions: LambdaCase
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
+    , containers
+    , directory
     , http-types
     , md-blog
     , parsec
