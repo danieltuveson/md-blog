@@ -23,4 +23,4 @@ index h = docTypeHtml $ do
       footer $ do 
         span "LinkedIn"
         span " - "
-        span "Github"
+        span "Github" 
