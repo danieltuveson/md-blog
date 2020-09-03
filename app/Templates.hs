@@ -16,9 +16,9 @@ index h = docTypeHtml $ do
     body $ do 
       header $ do 
         span $ do
-          a ! href "#" $ "Home"
+          a ! href "/" $ "Home"
           span " / "
-          a ! href "../css/style.css" $ "Posts"
+          a ! href "/posts/hello-world" $ "Posts"
       main $ div ! class_ "thing" $ h 
       footer $ do 
         span "LinkedIn"
