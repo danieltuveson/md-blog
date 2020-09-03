@@ -17,12 +17,14 @@ import Control.Concurrent(threadDelay)
 
 import Data.ByteString.Lazy(ByteString, writeFile)
 import Data.String
+import Data.Maybe(fromMaybe)
 
 import Network.Wai
 import Network.HTTP.Types
-import Network.Wai.Handler.Warp (run)
+import Network.Wai.Handler.Warp (runEnv)
 
 import System.Directory(getCurrentDirectory)
+import System.Environment(lookupEnv)
 
 type BlogPost = Html
 
@@ -66,8 +68,7 @@ app request respond = do
 
 main :: IO ()
 main = do
-  -- generatePosts
-  wd <- getCurrentDirectory
-  print wd
-  putStrLn $ "http://localhost:8080/"
-  run 8080 app
+  maybePort <- lookupEnv "PORT"
+  let port = fromMaybe "8080" maybePort
+  putStrLn $ "http://localhost:" ++ port
+  runEnv (read port :: Int) app
