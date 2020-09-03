@@ -69,5 +69,5 @@ main = do
   -- generatePosts
   wd <- getCurrentDirectory
   print wd
-  putStrLn $ "http://localhost:8080/"
+  putStrLn $ "http://localhost:80/"
   run 8080 app

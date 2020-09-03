@@ -1,0 +1,2 @@
+export PORT=80
+sudo -E nohup stack run --allow-different-user &>/dev/null &
