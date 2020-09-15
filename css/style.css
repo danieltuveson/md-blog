@@ -6,15 +6,10 @@ header, footer {
 body {
     font: 1em "Fira Sans", sans-serif;
     padding: 60px;
+    color: #34515E;
+    background: #FFD9A8;
 }
+/* HEX: #34515E
+#34515e
+#ffd9a8 */
 
-/* .thing {
-    font: .2em "Fira Sans", sans-serif;
-    color: blue;
-} */
-
-
-/* 
-h1 {
-    font: 
-} */

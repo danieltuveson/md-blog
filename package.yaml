@@ -12,6 +12,8 @@ extra-source-files:
 
 default-extensions:
 - LambdaCase
+- OverloadedStrings
+- FlexibleContexts
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -34,11 +36,17 @@ dependencies:
 - bytestring
 - directory
 - containers
+- stm
+- tostring
+- filepath
+- sort
 
 library:
   source-dirs: src
   ghc-options:
     - -Wall
+    - -Wno-unused-do-bind
+    - -Wno-name-shadowing
 
 executables:
   md-blog-exe:
@@ -49,6 +57,9 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
+    - -Wno-unused-do-bind
+    - -Wno-name-shadowing
+    - -Wno-type-defaults
     dependencies:
     - md-blog
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 62b752878fc11323f158832b134ad45f2b37b04c47939fb09e2818e996ca0a85
+-- hash: 847ea4d78f81be69f2aed843eaf03a74c9c81722c8f144479d6c7bbfd2f93b9b
 
 name:           md-blog
 version:        0.1.0.0
@@ -33,8 +33,8 @@ library
       Paths_md_blog
   hs-source-dirs:
       src
-  default-extensions: LambdaCase
-  ghc-options: -Wall
+  default-extensions: LambdaCase OverloadedStrings FlexibleContexts
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-name-shadowing
   build-depends:
       base >=4.7 && <5
     , blaze-html
@@ -42,8 +42,12 @@ library
     , bytestring
     , containers
     , directory
+    , filepath
     , http-types
     , parsec
+    , sort
+    , stm
+    , tostring
     , wai
     , wai-extra
     , warp
@@ -52,12 +56,15 @@ library
 executable md-blog-exe
   main-is: Main.hs
   other-modules:
+      App
+      Blog
+      Routing
       Templates
       Paths_md_blog
   hs-source-dirs:
       app
-  default-extensions: LambdaCase
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  default-extensions: LambdaCase OverloadedStrings FlexibleContexts
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wno-unused-do-bind -Wno-name-shadowing -Wno-type-defaults
   build-depends:
       base >=4.7 && <5
     , blaze-html
@@ -65,9 +72,13 @@ executable md-blog-exe
     , bytestring
     , containers
     , directory
+    , filepath
     , http-types
     , md-blog
     , parsec
+    , sort
+    , stm
+    , tostring
     , wai
     , wai-extra
     , warp
@@ -80,7 +91,7 @@ test-suite md-blog-test
       Paths_md_blog
   hs-source-dirs:
       test
-  default-extensions: LambdaCase
+  default-extensions: LambdaCase OverloadedStrings FlexibleContexts
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -89,9 +100,13 @@ test-suite md-blog-test
     , bytestring
     , containers
     , directory
+    , filepath
     , http-types
     , md-blog
     , parsec
+    , sort
+    , stm
+    , tostring
     , wai
     , wai-extra
     , warp

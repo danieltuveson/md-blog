@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -Wno-unused-do-bind #-} 
-
 module Markdown where 
 
 import Text.Parsec

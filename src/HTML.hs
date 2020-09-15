@@ -1,7 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-} 
-
 module HTML where 
 
 import Markdown
