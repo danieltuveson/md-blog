@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aedb25a0ff4fd19ab3321205e5514300d6683ccd173d9a6bb7f78db2daabfc29
+-- hash: f581642844a59011bb8bf7debc891dba962bb36a76af345196847b1f8544b9dd
 
 name:           md-blog
 version:        0.1.0.0
@@ -59,8 +59,8 @@ library
 executable md-blog-exe
   main-is: Main.hs
   other-modules:
-      App
       Blog
+      Routing
       Templates
       Paths_md_blog
   hs-source-dirs:
