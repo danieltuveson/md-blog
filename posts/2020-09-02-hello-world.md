@@ -31,3 +31,4 @@ I'll add in functionality for images, tables, and stuff like that later, but for
 This step is going to be pretty simple, since I literally just want to serve a post sitting in a folder. What I'll do is have the program convert all markdown files to blaze-html bytestrings, then serve those as people request them. 
 
 In the future I may convert this site to some other backend, but for now this site exists as a way for me to play around with the more low level features of a web backend, so I'm going to continue using plain WAI. 
+

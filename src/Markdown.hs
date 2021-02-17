@@ -42,13 +42,18 @@ data MDList
 
 data Language
   = Haskell 
+  | Java
+  | Python
   | NoLanguage
   deriving(Eq)
 
 instance Show Language where 
   show = \case
-    Haskell    -> "lang-haskell"
+    Haskell    -> "haskell"
+    Java       -> "java"
+    Python     -> "python"
     NoLanguage -> "lang-none"
+
 
 nonNewlineSpace :: Parser Char 
 nonNewlineSpace = 
@@ -64,22 +69,22 @@ checkEOL :: Parser String
 checkEOL = lookAhead $ try $ string "\n"
 
 parseMarkdown :: Parser [Markdown]
-parseMarkdown = do
-  m <- manyTill parseMD checkEOF
-  return m
-  where 
-    parseMD = parseHeader <|> parseList <|> codeBlock <|> (parseMDLineWithNewline >>= return . MDText)
+parseMarkdown = manyTill parseMD checkEOF
+  where parseMD = parseHeader 
+              <|> parseList 
+              <|> codeBlock 
+              <|> parseMDLineWithNewline
 
 parseMDLine :: Parser [MDText]
 parseMDLine = do
   m <- manyTill parseMDTextChunk ((try $ string "\n") <|> checkEOF)
   return $ concat m
 
-parseMDLineWithNewline :: Parser [MDText]
+parseMDLineWithNewline :: Parser Markdown
 parseMDLineWithNewline = try $ do
   m <- manyTill parseMDTextChunk (checkEOL <|> checkEOF)
   n <- string "\n" <|> checkEOF
-  return $ (concat m ++ [Plain n])
+  return $ MDText (concat m ++ [Plain n])
 
 parseMDTextChunk :: Parser [MDText]
 parseMDTextChunk = do 
@@ -168,6 +173,7 @@ codeBlock = try $ do
   lang <- parseLanguage
   newline 
   code <- manyTill anyChar $ try $ (newline >> string "```")
+  string "\n" <|> checkEOF
   return $ CodeBlock lang code 
 
 parseLanguage :: Parser Language
@@ -178,4 +184,6 @@ parseLanguage = try $ do
   where 
     toLanguage str
       | str == "haskell" = Haskell
+      | str == "java"    = Java
+      | str == "python"  = Python 
       | otherwise = NoLanguage 

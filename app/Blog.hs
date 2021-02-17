@@ -6,6 +6,7 @@ import HTML(markdownToHtml)
 import Text.Parsec.String(parseFromFile)
 import Text.Blaze.Html 
 
+import Safe(atMay)
 import Data.Either(rights)
 import Data.Sort
 import qualified Data.Map.Strict as Map
@@ -24,6 +25,8 @@ data Blog = Blog
   { date :: String 
   , title :: String 
   , blogContents :: Html
+  , prevPost :: Maybe BlogKey
+  , nextPost :: Maybe BlogKey
   } 
 
 -- Grabs all posts in the "posts" directory, and returns a map of 
@@ -41,8 +44,11 @@ getPostsFromFiles :: [(FilePath, [Markdown])] -> BlogPosts
 getPostsFromFiles files = Map.fromList posts
   where 
     htmls = map (\(f, m) -> (f, markdownToHtml m)) $ sortBy (\x y -> compare (fst x) (fst y)) files
-    posts = map (uncurry makePost) htmls
-    makePost str file = 
+    posts = map makePost $ zip [0..] htmls
+    makePost (i, (str, file)) = 
       let date  = take 10 str
-          title = take (length str - 14) $ drop 11 str
-      in (BlogKey str, Blog date title file)
+          title = take (length str - 14) $ drop 11 str 
+          prevPost = BlogKey . fst <$> htmls `atMay` (i - 1)
+          nextPost = BlogKey . fst <$> htmls `atMay` (i + 1)
+      in (BlogKey str, Blog date title file prevPost nextPost)
+

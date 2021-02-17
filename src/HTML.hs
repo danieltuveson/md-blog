@@ -51,7 +51,7 @@ evalMDHeader h = toHeader h . evalMDTexts
       H6 -> h6
 
 evalCodeBlock :: Language -> String -> Html 
-evalCodeBlock lang str = pre ! languageClass $ string str
+evalCodeBlock lang str = pre $ code ! languageClass $ string str
   where languageClass = class_ $ stringValue $ show lang
 
 evalMDTexts :: [MDText] -> Html 

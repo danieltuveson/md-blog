@@ -3,12 +3,14 @@ header, footer {
     font: 1.2em "Fira Sans", sans-serif;
 }
 
+
 body {
     font: 1em "Fira Sans", sans-serif;
     padding: 60px;
     color: #34515E;
     background: #FFD9A8;
-}
+} 
+
 /* HEX: #34515E
 #34515e
 #ffd9a8 */
