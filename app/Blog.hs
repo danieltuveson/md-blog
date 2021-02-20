@@ -7,7 +7,7 @@ import Text.Parsec.String(parseFromFile)
 import Text.Blaze.Html 
 
 import Safe(atMay)
-import Data.Either(rights)
+import Data.Either
 import Data.Sort
 import qualified Data.Map.Strict as Map
 
@@ -34,6 +34,11 @@ getPosts :: IO BlogPosts
 getPosts = do 
   files <- listDirectory folder 
   eitherMarkdown <- mapM parseFile files
+  if (length $ lefts eitherMarkdown) > 0 then 
+    -- If it can't parse a blog, don't crash the site, but let me know I messed up
+    putStrLn $ "Error parsing new blog post: " ++ (show $ lefts eitherMarkdown)
+  else return ()
+  -- Return whatever parses successfully 
   return $ getPostsFromFiles $ zip files $ rights eitherMarkdown
   where 
     folder = "./posts"

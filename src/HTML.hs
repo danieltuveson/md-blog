@@ -24,7 +24,8 @@ instance MD MDText where
     Plain str          -> string str
     Bold mdt'          -> strong $ evalMarkdown mdt'
     Italic mdt'        -> em $ evalMarkdown mdt'
-    Link (text, link)  -> a ! (href $ stringValue link) $ string text
+    Link text link     -> a ! (href $ stringValue link) $ string text
+    Image text link    -> img ! (src $ stringValue link) ! (alt $ stringValue text) ! class_ "img-fluid"
     Strikethrough mdt' -> del $ evalMarkdown mdt'
     CodeLine str       -> code $ string str
 

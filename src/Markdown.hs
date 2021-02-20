@@ -21,7 +21,8 @@ data MDText
   = Plain String 
   | Bold MDText 
   | Italic MDText 
-  | Link (String, String)
+  | Link String String
+  | Image String String
   | Strikethrough MDText 
   | CodeLine String 
   deriving(Show, Eq)
@@ -89,7 +90,7 @@ parseMDLineWithNewline = try $ do
 parseMDTextChunk :: Parser [MDText]
 parseMDTextChunk = do 
   text        <- manyTill anyChar $ lookAhead inlineIdentifier <|> checkEOL <|> checkEOF
-  maybeStyled <- optionMaybe $ bold <|> italic <|> inLineCode <|> parseLink <|> strikethrough
+  maybeStyled <- optionMaybe $ bold <|> italic <|> inLineCode <|> parseLink <|> parseImage <|> strikethrough
   case maybeStyled of 
     Nothing -> do 
       remainder   <- optionMaybe $ inlineIdentifier
@@ -98,7 +99,7 @@ parseMDTextChunk = do
     Just s  -> return $ [Plain text, s]
   where 
     inlineIdentifier = try $ do 
-      c <- oneOf "*_`h[~" 
+      c <- oneOf "*_`h[~!" 
       return [c]
 
 inlineStyle :: String -> (String -> MDText) -> Parser MDText
@@ -120,20 +121,30 @@ strikethrough :: Parser MDText
 strikethrough = inlineStyle "~~" (Strikethrough . Plain)
 
 parseLink :: Parser MDText
-parseLink = labeledLink <|> autoLink
-  where 
-    labeledLink = try $ do 
-      char '['
-      text <- manyTill (noneOf "\n") (string "](")
-      l    <- link $ char ')'
-      return $ Link (text, l)
-    autoLink = try $ do 
-      l <- link space
-      return $ Link (l, l)
-    link end =  do
-      http <- (try $ string "http://") <|> (try $ string "https://")
-      rest <- manyTill anyChar (lookAhead $ try $ end)
-      return $ http ++ rest
+parseLink = (labeledLink Link) <|> autoLink
+
+-- Parser for labeled hyperlink *or* for an image
+labeledLink :: (String -> String -> MDText) -> Parser MDText
+labeledLink constuctor = try $ do 
+  char '['
+  text <- manyTill (noneOf "\n") (string "](")
+  l    <- manyTill anyChar (string ")")
+  return $ constuctor text l
+
+autoLink :: Parser MDText
+autoLink = try $ do 
+  l <- rawLink space
+  return $ Link l l
+
+rawLink :: Parser Char -> Parser String
+rawLink end =  do
+  http <- (try $ string "http://") <|> (try $ string "https://")
+  rest <- manyTill anyChar (lookAhead $ try $ end)
+  end
+  return $ http ++ rest
+
+parseImage :: Parser MDText 
+parseImage = try (char '!' >> labeledLink Image)
 
 parseHeader :: Parser Markdown
 parseHeader = try $ do 
