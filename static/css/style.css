@@ -3,6 +3,15 @@ header, footer {
     font: 1.2em "Fira Sans", sans-serif;
 }
 
+img {
+    display: block;
+    width: auto;
+    height: auto;
+    /* width: 200px; */
+    max-width: 1%;
+    max-height: 1%;
+    /* margin: 20px auto; */
+}
 
 body {
     font: 1em "Fira Sans", sans-serif;
@@ -10,8 +19,3 @@ body {
     color: #34515E;
     background: #FFD9A8;
 } 
-
-/* HEX: #34515E
-#34515e
-#ffd9a8 */
-
