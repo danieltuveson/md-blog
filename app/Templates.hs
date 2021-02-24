@@ -22,13 +22,22 @@ index h = docTypeHtml $ do
   body $ do 
     header $ do 
       span $ do
-        a ! href "/" $ "Home"
-        span " / "
-        a ! href "/posts" $ "Posts"
-        span " / "
-        a ! href "https://www.linkedin.com/in/daniel-tuveson" $ "LinkedIn"
-        span " / "
-        a ! href "https://github.com/danieltuveson" $ "Github"
+        -- a ! href "/" $ "Home"
+        -- span " / "
+        -- a ! href "/posts" $ "Posts"
+        -- span " / "
+        -- a ! href "https://www.linkedin.com/in/daniel-tuveson" $ "LinkedIn"
+        -- span " / "
+        -- a ! href "https://github.com/danieltuveson" $ "Github"
+        nav $ do 
+          ol ! class_ "breadcrumb" $ do
+            li ! class_ "breadcrumb-item" $ 
+              a ! href "/" $ "Home"
+            li ! class_ "breadcrumb-item" $ 
+              a ! href "/posts" $ "Posts"
+            li ! class_ "breadcrumb-item" $ 
+              a ! href "/contact" $ "Contact"
+            
     br
     br 
     br 
@@ -76,6 +85,14 @@ blogs blogPosts = index $ do
     toLink (BlogKey key) b =
       a ! href (stringValue key) $ 
         toHtml $ (date b) ++ " - " ++ (Blog.title b)
+
+contact :: Html 
+contact = index $ do 
+  h1 "Contact" 
+  ul $ do 
+    li $ a ! href "https://www.linkedin.com/in/daniel-tuveson" $ "LinkedIn"
+    li $ a ! href "https://github.com/danieltuveson" $ "Github"
+    li $ a ! href "mailto: danieltuveson@gmail.com" $ "Email"
 
 notFoundPage :: Html 
 notFoundPage = index $ h1 "404: Not Found"

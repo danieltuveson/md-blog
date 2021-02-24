@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: blaze-from-html-0.4.0.1@sha256:e1d563966c5c31d94045ccbde66b704d06189b530caac75d4fd373fa2c3eed9c,1142
+    pantry-tree:
+      size: 424
+      sha256: df49b7dbb9fda705dc13ca0834d732b1c8e46596426771aa85739df885cafaf6
+  original:
+    hackage: blaze-from-html-0.4.0.1@sha256:e1d563966c5c31d94045ccbde66b704d06189b530caac75d4fd373fa2c3eed9c,1142
 snapshots:
 - completed:
     size: 532383

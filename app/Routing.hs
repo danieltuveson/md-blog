@@ -26,7 +26,7 @@ routing tPosts = do
     posts <- getPosts
     let postKey = fst $ head $ Map.toDescList posts
     blogResponse postKey posts
-
+  
   -- List of blog posts 
   get "/posts" $ getPosts >>= htmlResponse . blogs
 
@@ -39,6 +39,9 @@ routing tPosts = do
     else 
       next 
   
+  -- Contact page 
+  get "/contact" $ htmlResponse contact
+
   -- 404
   notFound $ htmlResponse notFoundPage
 
